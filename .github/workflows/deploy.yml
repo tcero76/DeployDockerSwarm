@@ -1,0 +1,66 @@
+
+name: Java CI with Gradle
+
+on: 
+  workflow_dispatch: 
+  push:
+    branches: [ master ]
+    tags: [ deployment ]
+
+jobs:
+  # build:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up JDK 17
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         java-version: '17'
+  #         distribution: 'corretto'
+  #     - name: Get the version
+  #       id: vars
+  #       run: echo ::set-output name=tag::$(echo ${GITHUB_SHA:10})
+  #     - name: Docker login
+  #       env:
+  #         DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         DOCKER_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  #         DOCKER_TOKEN: ${{ env.DOCKER_TOKEN }}
+  #       run : |
+  #         echo $DOCKER_PASSWORD | docker login -u="$DOCKER_USERNAME" --password-stdin
+  #     - name: Grant execute permission for gradlew
+  #       run: chmod +x gradlew
+  #     - name: Build with Gradle
+  #       run: ./gradlew clean build
+  #     - name: Push the Docker image 
+  #       run: ./gradlew :app:dockerPush
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: install ssh keys
+      env:
+        INPUT_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_PRIVATE_KEY }}
+        INPUT_SSH_HOST_KEY: ${{ secrets.DEPLOY_PUBLIC_KEY }}
+        INPUT_DOCKER_USER: ${{ secrets.DEPLOY_USERNAME }}
+        INPUT_DOCKER_HOST: ${{ secrets.DEPLOY_HOST }}
+        INPUT_DOCKER_COMPOSE: ${{ github.workspace }}
+      run: |
+        # Start ssh-agent
+        eval $(ssh-agent -s)
+        # register the private key with the agent.
+        mkdir $HOME/.ssh && echo "$HOME/.ssh folder created"
+        printf '%s\n' "$INPUT_SSH_PRIVATE_KEY" > $HOME/.ssh/id_rsa
+        chmod 600 $HOME/.ssh/id_rsa
+        # Add SSH private key to agent
+        ssh-add $HOME/.ssh/id_rsa
+        # Add SSH host key to known_hosts file
+        # echo "$INPUT_DOCKER_HOST $INPUT_SSH_HOST_KEY" >> $HOME/.ssh/known_hosts && echo "known_hosts updated"
+        scp -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa $INPUT_DOCKER_COMPOSE/docker-compose.yml $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST:~/docker-compose.yml
+        ssh -o StrictHostKeyChecking=no $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST "docker compose pull && docker compose up -d && exit"
+        # 🧹 Remove $HOME/.ssh folder
+        rm -rf $HOME/.ssh && echo "$HOME/.ssh folder removed"
+        # 🧹 Remove SSH private key from ssh-agent
+        ssh-add -D
+        # 🧹 Stop ssh-agent
+        eval $(ssh-agent -k)
+
