@@ -55,6 +55,7 @@ jobs:
         chmod 600 $HOME/.ssh/id_rsa
         # Add SSH private key to agent
         ssh-add $HOME/.ssh/id_rsa
+        ssh-add $HOME/.ssh/worker1
         # Add SSH host key to known_hosts file
         # echo "$INPUT_DOCKER_HOST $INPUT_SSH_HOST_KEY" >> $HOME/.ssh/known_hosts && echo "known_hosts updated"
         scp -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa -P 2210 $INPUT_DOCKER_COMPOSE/docker-compose.yml $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST:~/docker-compose.yml
