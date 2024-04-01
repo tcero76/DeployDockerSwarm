@@ -61,7 +61,7 @@ jobs:
         # echo "$INPUT_DOCKER_HOST $INPUT_SSH_HOST_KEY" >> $HOME/.ssh/known_hosts && echo "known_hosts updated"
         scp -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa -P 2210 $INPUT_DOCKER_COMPOSE/docker-compose.yml $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST:~/docker-compose.yml
         export HOST_MANAGER_LINE=$(ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2210 "ifconfig eth1")
-        export HOST_MANAGER=$($HOST_MANAGER_LINE | grep -v 'inet6' | grep -i 'inet' | awk '{print $2}')
+        export HOST_MANAGER=$(echo "$HOST_MANAGER_LINE" | grep -v 'inet6' | grep -i 'inet' | awk '{print $2}')
         echo "la IP es: $HOST_MANAGER"
         ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2210 "docker swarm init --advertise-addr $HOST_MANAGER"
         ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2210 "docker network create --driver overlay mynet"
