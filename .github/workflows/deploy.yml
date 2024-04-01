@@ -53,6 +53,7 @@ jobs:
         printf '%s\n' "$INPUT_SSH_PRIVATE_KEY" > $HOME/.ssh/id_rsa
         printf '%s\n' "$INPUT_SSH_PRIVATE_KEY_WORKER1" > $HOME/.ssh/worker1
         chmod 600 $HOME/.ssh/id_rsa
+        chmod 600 $HOME/.ssh/worker1
         # Add SSH private key to agent
         ssh-add $HOME/.ssh/id_rsa
         ssh-add $HOME/.ssh/worker1
