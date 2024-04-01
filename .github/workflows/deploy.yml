@@ -56,7 +56,7 @@ jobs:
         # Add SSH host key to known_hosts file
         # echo "$INPUT_DOCKER_HOST $INPUT_SSH_HOST_KEY" >> $HOME/.ssh/known_hosts && echo "known_hosts updated"
         scp -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa -P 2220 $INPUT_DOCKER_COMPOSE/docker-compose.yml $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST:~/docker-compose.yml
-        # ssh -o StrictHostKeyChecking=no -p 2220 $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST "docker compose pull && docker compose up -d && exit"
+        ssh -o StrictHostKeyChecking=no $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2220 "docker compose pull && docker compose up -d && exit"
         # 🧹 Remove $HOME/.ssh folder
         rm -rf $HOME/.ssh && echo "$HOME/.ssh folder removed"
         # 🧹 Remove SSH private key from ssh-agent
