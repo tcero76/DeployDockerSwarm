@@ -51,6 +51,7 @@ jobs:
         # register the private key with the agent.
         mkdir $HOME/.ssh && echo "$HOME/.ssh folder created"
         printf '%s\n' "$INPUT_SSH_PRIVATE_KEY" > $HOME/.ssh/id_rsa
+        printf '%s\n' "$INPUT_SSH_PRIVATE_KEY_WORKER1" > $HOME/.ssh/worker1
         chmod 600 $HOME/.ssh/id_rsa
         # Add SSH private key to agent
         ssh-add $HOME/.ssh/id_rsa
@@ -61,8 +62,7 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2210 "docker network create --driver overlay mynet"
         export TOKEN=$(ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/id_rsa $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2210 "docker swarm join-token manager --quiet")
         echo "Entonces el token correspode a: $TOKEN"
-        ssh-add - <<< "$INPUT_SSH_PRIVATE_KEY_WORKER1"
-        ssh -o StrictHostKeyChecking=no $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2220 "docker swarm join --token $TOKEN 192.168.56.10:2377"
+        ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/worker1 $INPUT_DOCKER_USER@$INPUT_DOCKER_HOST -p 2220 "docker swarm join --token $TOKEN 192.168.56.10:2377"
         # 🧹 Remove $HOME/.ssh folder
         rm -rf $HOME/.ssh && echo "$HOME/.ssh folder removed"
         # 🧹 Remove SSH private key from ssh-agent
